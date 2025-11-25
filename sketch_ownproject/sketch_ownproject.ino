@@ -1,44 +1,66 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
+int led1 = 6;
+int led2 = 7;
+
 #define RST_PIN 9
 #define SS_PIN 10
 
-MFRC522 rfid(SS_PIN, RST_PIN);
+byte readCard[4];
+String MasterTag = "9394C1D";  // REPLACE this Tag ID with your Tag ID!!!
+String tagID = "";
+
+// Create instances
+MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 void setup() {
-  Serial.begin(115200);
-  SPI.begin();
-  rfid.PCD_Init();
-  delay(50);
-
-  byte v = rfid.PCD_ReadRegister(MFRC522::VersionReg);
-  Serial.print("Firmware Version: 0x");
-  if (v < 0x10) Serial.print("0");
-  Serial.println(v, HEX);
-
-  Serial.println("Ready — håll ett kort mot läsaren...");
+  SPI.begin();         // SPI bus
+  mfrc522.PCD_Init();  // MFRC522
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
 }
 
 void loop() {
-  // vänta på nytt kort
-  if (!rfid.PICC_IsNewCardPresent()) return;
-  if (!rfid.PICC_ReadCardSerial()) return;
-
-  Serial.print("UID: ");
-  for (byte i = 0; i < rfid.uid.size; i++) {
-    if (rfid.uid.uidByte[i] < 0x10) Serial.print("0");
-    Serial.print(rfid.uid.uidByte[i], HEX);
-    if (i < rfid.uid.size - 1) Serial.print(":");
+  Serial.begin(9600);
+  //Wait until new tag is available
+  while (getID()) {
+    if (tagID == MasterTag) {
+      
+      Serial.print(tagID + " Scanning.. ");
+      delay(200);
+      Serial.println("Access Granted!");
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+      // You can write any code here like opening doors, switching on a relay, lighting up an LED, or anything else you can think of.
+    } else {
+      digitalWrite(led2, HIGH);
+      digitalWrite(led1, LOW);
+      Serial.print(tagID + " Scanning.. ");
+      delay(200);
+      Serial.println("Access Denied!");
+    }
+    delay(2000);
+    digitalWrite(led2, LOW);
+    digitalWrite(led1, LOW);
   }
-  Serial.println();
+}
 
-  // Visa typ av kort
-  MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
-  Serial.print("Type: ");
-  Serial.println(rfid.PICC_GetTypeName(piccType));
-
-  rfid.PICC_HaltA();        // stoppa kommunikationen med kortet
-  rfid.PCD_StopCrypto1();   // stäng kryptering om den var igång
-  delay(500);
+//Read new tag if available
+boolean getID() {
+  // Getting ready for Reading PICCs
+  if (!mfrc522.PICC_IsNewCardPresent()) {  //If a new PICC placed to RFID reader continue
+    return false;
+  }
+  if (!mfrc522.PICC_ReadCardSerial()) {  //Since a PICC placed get Serial and continue
+    return false;
+  }
+  tagID = "";
+  for (uint8_t i = 0; i < 4; i++) {  // The MIFARE PICCs that we use have 4 byte UID
+    //readCard[i] = mfrc522.uid.uidByte[i];
+    tagID.concat(String(mfrc522.uid.uidByte[i], HEX));  // Adds the 4 bytes in a single String variable
+  }
+  tagID.toUpperCase();
+  mfrc522.PICC_HaltA();  // Stop reading
+  return true;
 }
