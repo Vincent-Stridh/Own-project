@@ -1,8 +1,22 @@
+/*
+* Name: Own Project 
+* Author: Vincent Stridh
+* Date: 2025-12-2
+* Description: This project uses a rc522 to read the rfid cards and and displays the time to an 1306 oled display, 
+* Further, it measures temprature with ds3231 and displays a mapped value to a 9g-servo-motor.
+*/
+
+
+
 #include <SPI.h>
 #include <MFRC522.h>
+#include <VarSpeedServo.h>
+
+VarSpeedServo Servo1;
 
 int led1 = 6;
 int led2 = 7;
+int servoPin = 9;
 
 #define RST_PIN 9
 #define SS_PIN 10
@@ -19,26 +33,31 @@ void setup() {
   mfrc522.PCD_Init();  // MFRC522
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
+  Servo1.attach(servoPin);
+  Servo1.write(0);
 }
 
 void loop() {
   Serial.begin(9600);
+  
   //Wait until new tag is available
   while (getID()) {
     if (tagID == MasterTag) {
       
-      Serial.print(tagID + " Scanning.. ");
-      delay(200);
+      Serial.println("Tag detected: '" + tagID + "'..");
+      delay(600);
+      Serial.println(" Scanning data.. ");
+      delay(1300);
       Serial.println("Access Granted!");
-      digitalWrite(led1, HIGH);
-      digitalWrite(led2, LOW);
-      // You can write any code here like opening doors, switching on a relay, lighting up an LED, or anything else you can think of.
+      Servo1.write(90, 15, true);
     } else {
-      digitalWrite(led2, HIGH);
-      digitalWrite(led1, LOW);
-      Serial.print(tagID + " Scanning.. ");
-      delay(200);
+      Serial.println("Tag detected: '" + tagID + "'..");
+      delay(600);
+      Serial.println(" Scanning data.. ");
+      delay(1500);
       Serial.println("Access Denied!");
+      Servo1.write(0, 100, true);
+
     }
     delay(2000);
     digitalWrite(led2, LOW);
