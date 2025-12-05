@@ -2,24 +2,21 @@
 * Name: Own Project 
 * Author: Vincent Stridh
 * Date: 2025-12-2
-* Description: This project uses a rc522 to read the rfid cards and and displays the time to an 1306 oled display, 
-* Further, it measures temprature with ds3231 and displays a mapped value to a 9g-servo-motor.
+* Description: This project uses a rc522 to read the rfid cards and and processes what card it is and then responds in the terminal and on the oled ring, 
+* Further, the servo motor will allow me to open and close a door depending on if the rfid card is allowed or not.
 */
-
-
 
 #include <SPI.h>
 #include <MFRC522.h>
 #include <VarSpeedServo.h>
+#include <Adafruit_NeoPixel.h>
 
-VarSpeedServo Servo1;
-
-int led1 = 6;
-int led2 = 7;
 int servoPin = 9;
 
 #define RST_PIN 9
 #define SS_PIN 10
+#define LED_PIN 6
+#define LED_COUNT 24
 
 byte readCard[4];
 String MasterTag = "9394C1D";  // REPLACE this Tag ID with your Tag ID!!!
@@ -27,42 +24,103 @@ String tagID = "";
 
 // Create instances
 MFRC522 mfrc522(SS_PIN, RST_PIN);
+Adafruit_NeoPixel ring = (LED_COUNT, LED_PIN, NEO_RGBW + NEO_KHZ800);
+VarSpeedServo Servo1;
 
 void setup() {
+  Serial.begin(9600);
   SPI.begin();         // SPI bus
   mfrc522.PCD_Init();  // MFRC522
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
   Servo1.attach(servoPin);
   Servo1.write(0);
+  ring.begin();
+  ring.show();
+  ring.setBrightness(50);
 }
 
 void loop() {
-  Serial.begin(9600);
-  
   //Wait until new tag is available
   while (getID()) {
     if (tagID == MasterTag) {
-      
       Serial.println("Tag detected: '" + tagID + "'..");
       delay(600);
       Serial.println(" Scanning data.. ");
       delay(1300);
       Serial.println("Access Granted!");
-      Servo1.write(90, 15, true);
+      green_brighten();
+      delay(500);
+      green_darken();
+      ring.show();
+      Servo1.write(90, 20, true);
     } else {
       Serial.println("Tag detected: '" + tagID + "'..");
       delay(600);
       Serial.println(" Scanning data.. ");
       delay(1500);
       Serial.println("Access Denied!");
+      red_brighten();
+      delay(500);
+      red_darken();
+      ring.show();
       Servo1.write(0, 100, true);
-
     }
-    delay(2000);
-    digitalWrite(led2, LOW);
-    digitalWrite(led1, LOW);
+    delay(3500);
+    Servo1.write(0, 100, true);
   }
+}
+
+void red_brighten() {
+  uint16_t i, j;
+
+  for (j = 45; j < 255; j++) {
+    for (i = 0; i < ring.numPixels(); i++) {
+      ring.setPixelColor(i, j, 0, 0);
+    }
+    ring.show();
+    delay(10);
+  }
+  //delay(1500);
+}
+
+void red_darken() {
+  Serial.begin(9600);
+  uint16_t i, j;
+
+  for (j = 255; j > 45; j--) {
+    for (i = 0; i < ring.numPixels(); i++) {
+      ring.setPixelColor(i, j, 0, 0);
+    }
+    ring.show();
+    delay(10);
+  }
+  //delay(1500);
+}
+
+void green_brighten() {
+  uint16_t i, j;
+
+  for (j = 45; j < 255; j++) {
+    for (i = 0; i < ring.numPixels(); i++) {
+      ring.setPixelColor(i, 0, j, 0);
+    }
+    ring.show();
+    delay(10);
+  }
+  //delay(1500);
+}
+
+void green_darken() {
+  Serial.begin(9600);
+  uint16_t i, j;
+
+  for (j = 255; j > 45; j--) {
+    for (i = 0; i < ring.numPixels(); i++) {
+      ring.setPixelColor(i, 0, j, 0);
+    }
+    ring.show();
+    delay(10);
+  }
+  //delay(1500);
 }
 
 //Read new tag if available
