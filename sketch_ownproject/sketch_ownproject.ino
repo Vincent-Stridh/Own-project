@@ -41,10 +41,11 @@ void setup() {
 void loop() {
   //Wait until new tag is available
   while (getID()) {
+    Servo1.write(0, 100, true);
     if (tagID == MasterTag) {
-      Serial.println("Tag detected: '" + tagID + "'..");
+      Serial.println("Scanning tag: '" + tagID + "'..");
       delay(600);
-      Serial.println(" Scanning data.. ");
+      Serial.println("Scanning data..");
       delay(1300);
       Serial.println("Access Granted!");
       green_brighten();
@@ -53,19 +54,17 @@ void loop() {
       ring.show();
       Servo1.write(90, 20, true);
     } else {
-      Serial.println("Tag detected: '" + tagID + "'..");
+      Serial.println("Scanning tag: '" + tagID + "'..");
       delay(600);
-      Serial.println(" Scanning data.. ");
+      Serial.println("Scanning data..");
       delay(1500);
       Serial.println("Access Denied!");
       red_brighten();
       delay(500);
       red_darken();
       ring.show();
-      Servo1.write(0, 100, true);
     }
     delay(3500);
-    Servo1.write(0, 100, true);
   }
 }
 
