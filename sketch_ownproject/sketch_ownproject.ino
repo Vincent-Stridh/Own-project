@@ -3,23 +3,23 @@
 * Author: Vincent Stridh
 * Date: 2025-12-2
 * Description: This project uses a rc522 to read the rfid cards and and processes what card it is and then responds in the terminal and on the oled ring, 
-* Further, the servo motor will allow me to open and close a door depending on if the rfid card is allowed or not.
+* Further, the servo motor will allow me to open and close a door depending on if the rfid card is set to be allowed or not. 
 */
 
+//Import libraries
 #include <SPI.h>
 #include <MFRC522.h>
 #include <VarSpeedServo.h>
 #include <Adafruit_NeoPixel.h>
 
+//Define variables
 int servoPin = 9;
-
 #define RST_PIN 9
 #define SS_PIN 10
 #define LED_PIN 6
 #define LED_COUNT 24
-
 byte readCard[4];
-String MasterTag = "9394C1D";  // REPLACE this Tag ID with your Tag ID!!!
+String MasterTag = "9394C1D";  // REPLACE this Tag ID with your Tag ID
 String tagID = "";
 
 // Create instances
@@ -32,7 +32,7 @@ void setup() {
   SPI.begin();         // SPI bus
   mfrc522.PCD_Init();  // MFRC522
   Servo1.attach(servoPin);
-  Servo1.write(0);
+  Servo1.write(150, 50, true);
   ring.begin();
   ring.show();
   ring.setBrightness(50);
@@ -41,7 +41,6 @@ void setup() {
 void loop() {
   //Wait until new tag is available
   while (getID()) {
-    Servo1.write(0, 100, true);
     if (tagID == MasterTag) {
       Serial.println("Scanning tag: '" + tagID + "'..");
       delay(600);
@@ -49,10 +48,10 @@ void loop() {
       delay(1300);
       Serial.println("Access Granted!");
       green_brighten();
+      Servo1.write(30, 35, true);
       delay(500);
       green_darken();
       ring.show();
-      Servo1.write(90, 20, true);
     } else {
       Serial.println("Scanning tag: '" + tagID + "'..");
       delay(600);
@@ -65,36 +64,40 @@ void loop() {
       ring.show();
     }
     delay(3500);
+    Servo1.write(150, 50, true);
   }
 }
 
+//Function: Turns the leds on the neoring to red
 void red_brighten() {
   uint16_t i, j;
 
-  for (j = 45; j < 255; j++) {
+  for (j = 45; j < 255; j+=3) {
     for (i = 0; i < ring.numPixels(); i++) {
       ring.setPixelColor(i, j, 0, 0);
     }
     ring.show();
     delay(10);
   }
-  //delay(1500);
+  ring.clear();
 }
 
+//Function: Makes the leds on the neoring return to unlit
 void red_darken() {
   Serial.begin(9600);
   uint16_t i, j;
 
-  for (j = 255; j > 45; j--) {
+  for (j = 255; j > 45; j-=3) {
     for (i = 0; i < ring.numPixels(); i++) {
       ring.setPixelColor(i, j, 0, 0);
     }
     ring.show();
     delay(10);
   }
-  //delay(1500);
+  ring.clear();
 }
 
+//Function: Turns the leds on the neoring to green
 void green_brighten() {
   uint16_t i, j;
 
@@ -105,9 +108,10 @@ void green_brighten() {
     ring.show();
     delay(10);
   }
-  //delay(1500);
+  ring.clear();
 }
 
+//Function: Makes the leds on the neoring return to unlit
 void green_darken() {
   Serial.begin(9600);
   uint16_t i, j;
@@ -119,7 +123,7 @@ void green_darken() {
     ring.show();
     delay(10);
   }
-  //delay(1500);
+  ring.clear();
 }
 
 //Read new tag if available
