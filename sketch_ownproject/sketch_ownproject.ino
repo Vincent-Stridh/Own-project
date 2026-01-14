@@ -11,6 +11,9 @@
 #include <MFRC522.h>
 #include <VarSpeedServo.h>
 #include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+  #include <avr/power.h>  // Required for 16 MHz Adafruit Trinket
+#endif
 
 //Define variables
 int servoPin = 9;
@@ -24,7 +27,7 @@ String tagID = "";
 
 // Create instances
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-Adafruit_NeoPixel ring = (LED_COUNT, LED_PIN, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel ring = (LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 VarSpeedServo Servo1;
 
 void setup() {
@@ -33,6 +36,9 @@ void setup() {
   mfrc522.PCD_Init();  // MFRC522
   Servo1.attach(servoPin);
   Servo1.write(150, 50, true);
+  #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+    clock_prescale_set(clock_div_1);
+  #endif
   ring.begin();
   ring.show();
   ring.setBrightness(50);
@@ -45,7 +51,7 @@ void loop() {
       Serial.println("Scanning tag: '" + tagID + "'..");
       delay(600);
       Serial.println("Scanning data..");
-      delay(1300);
+      //      rainbow(2);
       Serial.println("Access Granted!");
       green_brighten();
       Servo1.write(30, 35, true);
@@ -56,7 +62,7 @@ void loop() {
       Serial.println("Scanning tag: '" + tagID + "'..");
       delay(600);
       Serial.println("Scanning data..");
-      delay(1500);
+      //      rainbow(2);
       Serial.println("Access Denied!");
       red_brighten();
       delay(500);
@@ -66,13 +72,14 @@ void loop() {
     delay(3500);
     Servo1.write(150, 50, true);
   }
+ // rainbow(10);
 }
 
 //Function: Turns the leds on the neoring to red
 void red_brighten() {
   uint16_t i, j;
 
-  for (j = 45; j < 255; j+=3) {
+  for (j = 45; j < 255; j += 3) {
     for (i = 0; i < ring.numPixels(); i++) {
       ring.setPixelColor(i, j, 0, 0);
     }
@@ -87,7 +94,7 @@ void red_darken() {
   Serial.begin(9600);
   uint16_t i, j;
 
-  for (j = 255; j > 45; j-=3) {
+  for (j = 255; j > 45; j -= 3) {
     for (i = 0; i < ring.numPixels(); i++) {
       ring.setPixelColor(i, j, 0, 0);
     }
@@ -124,6 +131,16 @@ void green_darken() {
     delay(10);
   }
   ring.clear();
+}
+
+// Rainbow cycle along whole ring. Pass delay time (in ms) between frames.
+void rainbow(int wait) {
+  // Hue of first pixel runs 5 complete loops through the color wheel.
+  for (long firstPixelHue = 0; firstPixelHue < 5 * 65536; firstPixelHue += 256) {
+    ring.rainbow(firstPixelHue);
+    ring.show();  // Update ring with new contents
+    delay(wait);  // Pause for a moment
+  }
 }
 
 //Read new tag if available
