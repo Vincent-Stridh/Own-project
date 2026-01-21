@@ -17,6 +17,7 @@
 
 //Define variables
 int servoPin = 9;
+const int sensorPin = 7;
 #define RST_PIN 9
 #define SS_PIN 10
 #define LED_PIN 6
@@ -34,6 +35,7 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();         // SPI bus
   mfrc522.PCD_Init();  // MFRC522
+  pinMode(sensorPin, INPUT); //VMA314
   Servo1.attach(servoPin);
   Servo1.write(150, 50, true);
   #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
@@ -71,6 +73,10 @@ void loop() {
     }
     delay(3500);
     Servo1.write(150, 50, true);
+  }
+  while (CheckSens()) {
+    if (Sensor == HIGH);
+      theaterChase(strip.Color(127, 127, 127), 50);
   }
  // rainbow(10);
 }
@@ -141,6 +147,31 @@ void rainbow(int wait) {
     ring.show();  // Update ring with new contents
     delay(wait);  // Pause for a moment
   }
+}
+
+void theaterChase(uint32_t color, int wait) {
+  for(int a=0; a<10; a++) {  // Repeat 10 times...
+    for(int b=0; b<3; b++) { //  'b' counts from 0 to 2...
+      strip.clear();         //   Set all pixels in RAM to 0 (off)
+      // 'c' counts up from 'b' to end of strip in steps of 3...
+      for(int c=b; c<strip.numPixels(); c += 3) {
+        strip.setPixelColor(c, color); // Set pixel 'c' to value 'color'
+      }
+      strip.show(); // Update strip with new contents
+      delay(wait);  // Pause for a moment
+    }
+  }
+}
+
+int CheckSens() {
+  int val = digitalRead(sensorPin);
+  int Sensor;
+  if (val == HIGH) {
+    Sensor = HIGH;
+  } else {
+    Sensor = LOW;
+  }
+  return Sensor;
 }
 
 //Read new tag if available
