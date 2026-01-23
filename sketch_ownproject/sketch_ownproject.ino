@@ -16,6 +16,7 @@
 #endif
 
 //Define variables
+int Sensor = LOW;
 int servoPin = 9;
 const int sensorPin = 7;
 #define RST_PIN 9
@@ -56,7 +57,7 @@ void loop() {
       //      rainbow(2);
       Serial.println("Access Granted!");
       green_brighten();
-      Servo1.write(30, 35, true);
+      Servo1.write(170, 35, true);
       delay(500);
       green_darken();
       ring.show();
@@ -72,12 +73,12 @@ void loop() {
       ring.show();
     }
     delay(3500);
-    Servo1.write(150, 50, true);
+    Servo1.write(200, 50, true);
   }
-  while (CheckSens()) {
-    if (Sensor == HIGH);
-      theaterChase(strip.Color(127, 127, 127), 50);
-  }
+//  while (CheckSens()) {
+//    if (Sensor == HIGH);
+//      theaterChase(ring.Color(127, 127, 127), 50);
+  //}
  // rainbow(10);
 }
 
@@ -139,7 +140,8 @@ void green_darken() {
   ring.clear();
 }
 
-// Rainbow cycle along whole ring. Pass delay time (in ms) between frames.
+//Function: Rainbow cycle along whole ring
+//input: delay time in ms between cycles
 void rainbow(int wait) {
   // Hue of first pixel runs 5 complete loops through the color wheel.
   for (long firstPixelHue = 0; firstPixelHue < 5 * 65536; firstPixelHue += 256) {
@@ -149,21 +151,25 @@ void rainbow(int wait) {
   }
 }
 
+//Function: White cycle along the whole ring. Pass delay time (in ms) between frames.
+//input: delay time in ms between cycles
 void theaterChase(uint32_t color, int wait) {
   for(int a=0; a<10; a++) {  // Repeat 10 times...
     for(int b=0; b<3; b++) { //  'b' counts from 0 to 2...
-      strip.clear();         //   Set all pixels in RAM to 0 (off)
-      // 'c' counts up from 'b' to end of strip in steps of 3...
-      for(int c=b; c<strip.numPixels(); c += 3) {
-        strip.setPixelColor(c, color); // Set pixel 'c' to value 'color'
+      ring.clear();         //   Set all pixels in RAM to 0 (off)
+      // 'c' counts up from 'b' to end of ring in steps of 3...
+      for(int c=b; c<ring.numPixels(); c += 3) {
+        ring.setPixelColor(c, color); // Set pixel 'c' to value 'color'
       }
-      strip.show(); // Update strip with new contents
+      ring.show(); // Update ring with new contents
       delay(wait);  // Pause for a moment
     }
   }
 }
 
-int CheckSens() {
+//Function: When the sensor detects movement the Sensor value returned is set to HIGH
+//Output: bool(HIGH or LOW)
+void CheckSens() {
   int val = digitalRead(sensorPin);
   int Sensor;
   if (val == HIGH) {
@@ -174,7 +180,7 @@ int CheckSens() {
   return Sensor;
 }
 
-//Read new tag if available
+//Function: Read new tag if available
 boolean getID() {
   // Getting ready for Reading PICCs
   if (!mfrc522.PICC_IsNewCardPresent()) {  //If a new PICC placed to RFID reader continue
