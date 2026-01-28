@@ -38,7 +38,7 @@ void setup() {
   mfrc522.PCD_Init();  // MFRC522
   pinMode(sensorPin, INPUT); //VMA314
   Servo1.attach(servoPin);
-  Servo1.write(150, 50, true);
+  Servo1.write(7.5, 50, true);
   #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
     clock_prescale_set(clock_div_1);
   #endif
@@ -73,7 +73,7 @@ void loop() {
       ring.show();
     }
     delay(3500);
-    Servo1.write(200, 50, true);
+    Servo1.write(7.5, 50, true);
   }
 //  while (CheckSens()) {
 //    if (Sensor == HIGH);
