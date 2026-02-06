@@ -65,7 +65,6 @@ void loop() {
       Serial.println("Scanning tag: '" + tagID + "'..");
       delay(600);
       Serial.println("Scanning data..");
-      //      rainbow(2);
       Serial.println("Access Denied!");
       red_brighten();
       delay(500);
@@ -75,11 +74,6 @@ void loop() {
     delay(3500);
     Servo1.write(7.5, 50, true);
   }
-//  while (CheckSens()) {
-//    if (Sensor == HIGH);
-//      theaterChase(ring.Color(127, 127, 127), 50);
-  //}
- // rainbow(10);
 }
 
 //Function: Turns the leds on the neoring to red
@@ -140,47 +134,8 @@ void green_darken() {
   ring.clear();
 }
 
-//Function: Rainbow cycle along whole ring
-//input: delay time in ms between cycles
-void rainbow(int wait) {
-  // Hue of first pixel runs 5 complete loops through the color wheel.
-  for (long firstPixelHue = 0; firstPixelHue < 5 * 65536; firstPixelHue += 256) {
-    ring.rainbow(firstPixelHue);
-    ring.show();  // Update ring with new contents
-    delay(wait);  // Pause for a moment
-  }
-}
-
-//Function: White cycle along the whole ring. Pass delay time (in ms) between frames.
-//input: delay time in ms between cycles
-void theaterChase(uint32_t color, int wait) {
-  for(int a=0; a<10; a++) {  // Repeat 10 times...
-    for(int b=0; b<3; b++) { //  'b' counts from 0 to 2...
-      ring.clear();         //   Set all pixels in RAM to 0 (off)
-      // 'c' counts up from 'b' to end of ring in steps of 3...
-      for(int c=b; c<ring.numPixels(); c += 3) {
-        ring.setPixelColor(c, color); // Set pixel 'c' to value 'color'
-      }
-      ring.show(); // Update ring with new contents
-      delay(wait);  // Pause for a moment
-    }
-  }
-}
-
-//Function: When the sensor detects movement the Sensor value returned is set to HIGH
-//Output: bool(HIGH or LOW)
-void CheckSens() {
-  int val = digitalRead(sensorPin);
-  int Sensor;
-  if (val == HIGH) {
-    Sensor = HIGH;
-  } else {
-    Sensor = LOW;
-  }
-  return Sensor;
-}
-
 //Function: Read new tag if available
+//Returns True or False
 boolean getID() {
   // Getting ready for Reading PICCs
   if (!mfrc522.PICC_IsNewCardPresent()) {  //If a new PICC placed to RFID reader continue
